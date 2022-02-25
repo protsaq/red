@@ -3,6 +3,8 @@ import argparse
 import sys
 import os
 import json
+from log_setup import *
+
 
 filename = os.path.join(os.path.dirname(__file__), 'config.json')
 with open(filename) as jsonfile:
@@ -43,6 +45,7 @@ except:
     parser.print_help()
     sys.exit(0)
 
+logging.debug(f'arguments are {args}')
 if args.command.lower() == "search":
 	if args.album == None:
 		actions.artist_search(args, header)

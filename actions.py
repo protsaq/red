@@ -2,7 +2,7 @@ import requests
 import html
 import sys
 import const as c
-
+from log_setup import *
 
 def make_request(params, header):
 	req = requests.get(c.url, params=params, headers=header)
@@ -35,6 +35,7 @@ def artist_search(args, header):
 	""" requires 2 arguments """
 	artist = {"action": "artist", "artistname": args.artist.lower()}
 	r1 = make_request(artist, header).json()["response"]
+	res = {}
 	if args.r is None:
 		for group in r1["torrentgroup"]:
 			print("Release name: " + html.unescape(group["groupName"]))
@@ -87,7 +88,8 @@ def torrent_download(args, dir, header):
 
 def user_stats(header):
 	stats = {"action": "index"}
-	r1 = requests.get(c.url, params=stats, headers=header).json()["response"]
+	response_json = requests.get(c.url, params=stats, headers=header).json()
+	print(response_json)
 	print("Username........." + r1["username"])
 	print("Class............" + r1["userstats"]["class"])
 	print("Ratio............" + str(r1["userstats"]["ratio"]))
