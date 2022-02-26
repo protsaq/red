@@ -1,16 +1,9 @@
-import requests
 import html
 import sys
 import const as c
 from log_setup import *
-
-def make_request(params, header):
-	req = requests.get(c.url, params=params, headers=header)
-	if req.status_code != 200:
-		print(f"Status of request is {req.status_code}. Aborting...")
-		sys.exit()
-	return req
-
+from make_requests import *
+import json
 
 def sizeof_fmt(num, suffix="B"):
 	for unit in ["","K","M","G","T","P","E","Z"]:
@@ -35,24 +28,19 @@ def artist_search(args, header):
 	""" requires 2 arguments """
 	artist = {"action": "artist", "artistname": args.artist.lower()}
 	r1 = make_request(artist, header).json()["response"]
-	res = {}
-	if args.r is None:
-		for group in r1["torrentgroup"]:
-			print("Release name: " + html.unescape(group["groupName"]))
-			print("Release type: " + c.releases[group["releaseType"]])
-			print("")
-	elif args.r is not None:
-		for release in args.r:
-			for group in r1["torrentgroup"]:
-				if c.releases[group["releaseType"]].lower() == release:
-					print("Release name: " + html.unescape(group["groupName"]))
-					print("Release type: " + c.releases[group["releaseType"]])
-					print("")
-
+	wanted_releases = args.r if args.r != None else c.releases
+	for releaseName in wanted_releass:
+		filtered_releases = list(filter(lambda x: x['releaseType'] == c.releases[releaseName], r1['torrentgroup']))
+		unique_results = list(set(map(lambda x: x["groupName"], filtered_releases)))
+		if unique_results != []:
+			print(releaseName)
+			for record in unique_results:
+				print("\t" + record)
 
 def album_search(args, header):
 	artist = {"action": "artist", "artistname": args.artist.lower()}
 	r1 = make_request(artist, header).json()["response"]
+	logging.debug(r1)
 	for group in r1["torrentgroup"]:
 		if html.unescape(group["groupName"].lower()) == args.album.lower():
 			group = {"action": "torrentgroup", "id": str(group["groupId"])}
@@ -79,7 +67,7 @@ def torrent_download(args, dir, header):
 	r1 = make_request(details_params, header)
 	album = r1.json()["response"]["group"]["name"]
 	artist = str((r1.json()["response"]["group"]["musicInfo"]["artists"][0]["name"]))
-	download_params = {"action": "download", "id": args.torrentid, "usetoken": args.fl}
+	download_params = {"action": "download", "id": args.torrentid, "usetoken": int(args.fl)}
 	r2 = make_request(download_params, header)
 	path = dir + artist + " - " + album + ".torrent"
 	open(path, "wb").write(r2.content)
