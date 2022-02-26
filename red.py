@@ -12,7 +12,10 @@ with open(filename) as jsonfile:
 
 api_key = data['key']
 file_dir = data['file_dir']
-default_release = data['defaults']['release']
+if 'release' in data['defaults'].keys():
+	default_release = data['defaults']['release']
+else:
+	default_release = None
 default_media = data['defaults']['media']
 default_format = data['defaults']['format']
 freeleech = data['freeleech']
@@ -40,18 +43,20 @@ parser_3.set_defaults(command="download")
 args = parser.parse_args()
 
 try:
-    args.command
+	args.command
 except:
-    parser.print_help()
-    sys.exit(0)
+	parser.print_help()
+	sys.exit(0)
 
-logging.debug(f'arguments are {args}')
+logging.debug(f'arguments are\n {args}')
 if args.command.lower() == "search":
 	if args.album == None:
+		logging.debug(f'calling artist search')
 		actions.artist_search(args, header)
 	if args.album != None:
+		logging.debug(f'calling album search')
 		actions.album_search(args, header)
 if args.command.lower() == "stats":
-    actions.user_stats(header)
+	actions.user_stats(header)
 if args.command.lower() == "download":
 	actions.torrent_download(args,file_dir, header)
